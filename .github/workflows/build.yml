@@ -1,0 +1,262 @@
+# SPDX-FileCopyrightText: 2025 CyberAgent, Inc.
+# SPDX-License-Identifier: MIT
+
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+      - '.github/**'
+      - '!.github/workflows/build.yml'
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+    paths-ignore:
+      - '**.md'
+      - '.github/**'
+      - '!.github/workflows/build.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: { }
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build-native-osx:
+    runs-on: macos-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+        with:
+          submodules: recursive
+
+      - name: Build native library (arm64)
+        run: |
+          cd flip-native
+          mkdir build-arm64 && cd build-arm64
+          cmake .. -DCMAKE_OSX_ARCHITECTURES=arm64
+          cmake --build . --config Release
+
+      - name: Build native library (x86_64)
+        run: |
+          cd flip-native
+          mkdir build-x64 && cd build-x64
+          cmake .. -DCMAKE_OSX_ARCHITECTURES=x86_64
+          cmake --build . --config Release
+
+      - name: Create Universal Binary
+        run: |
+          cd flip-native
+          lipo -create \
+            build-arm64/libflip_native.dylib \
+            build-x64/libflip_native.dylib \
+            -output libflip_native.dylib
+          lipo -info libflip_native.dylib
+
+      - name: Upload native library
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6
+        with:
+          name: native-osx
+          path: flip-native/libflip_native.dylib
+
+  test-native-osx:
+    needs: [ build-native-osx ]
+    runs-on: ${{ matrix.os }}
+    name: test-native-osx-${{ matrix.name }}
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ macos-latest, macos-15-intel ]
+        include:
+          - os: macos-latest
+            name: arm64
+          - os: macos-15-intel
+            name: x64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+        with:
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Download macOS native library
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7
+        with:
+          name: native-osx
+          path: FlipBinding.CSharp/runtimes/osx/native/
+
+      - name: Test
+        run: dotnet test --verbosity normal --results-directory ./TestResults --logger "trx;LogFileName=test-results.trx"
+
+      - name: Upload test results
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6
+        with:
+          name: native-osx-${{ matrix.name }}-test-results
+          path: |
+            ./TestResults/*.trx
+            ./FlipBinding.CSharp.Tests/bin/Debug/net10.0/TestOutputs/*.png
+        if: (!cancelled())
+
+  build-native-win-x64:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+        with:
+          submodules: recursive
+
+      - name: Build native library
+        run: |
+          cd flip-native
+          mkdir build && cd build
+          cmake ..
+          cmake --build . --config Release
+
+      - name: Copy native library to runtimes
+        run: |
+          mkdir -p FlipBinding.CSharp/runtimes/win-x64/native
+          cp flip-native/build/Release/flip_native.dll FlipBinding.CSharp/runtimes/win-x64/native/
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Test
+        run: dotnet test --verbosity normal --results-directory ./TestResults --logger "trx;LogFileName=test-results.trx"
+
+      - name: Upload test results
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6
+        with:
+          name: native-win-x64-test-results
+          path: |
+            ./TestResults/*.trx
+            ./FlipBinding.CSharp.Tests/bin/Debug/net10.0/TestOutputs/*.png
+        if: (!cancelled())
+
+      - name: Upload native library
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6
+        with:
+          name: native-win-x64
+          path: flip-native/build/Release/flip_native.dll
+
+  build-native-linux-x64:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+        with:
+          submodules: recursive
+
+      - name: Build native library
+        run: |
+          cd flip-native
+          mkdir build && cd build
+          cmake ..
+          cmake --build . --config Release
+
+      - name: Copy native library to runtimes
+        run: |
+          mkdir -p FlipBinding.CSharp/runtimes/linux-x64/native
+          cp flip-native/build/libflip_native.so FlipBinding.CSharp/runtimes/linux-x64/native/
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Test
+        run: dotnet test --verbosity normal --results-directory ./TestResults --logger "trx;LogFileName=test-results.trx"
+
+      - name: Upload test results
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6
+        with:
+          name: native-linux-x64-test-results
+          path: |
+            ./TestResults/*.trx
+            ./FlipBinding.CSharp.Tests/bin/Debug/net10.0/TestOutputs/*.png
+        if: (!cancelled())
+
+      - name: Upload native library
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6
+        with:
+          name: native-linux-x64
+          path: flip-native/build/libflip_native.so
+
+  build-nupkg:
+    needs: [ test-native-osx, build-native-win-x64, build-native-linux-x64 ]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+        with:
+          submodules: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Download macOS native library
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7
+        with:
+          name: native-osx
+          path: FlipBinding.CSharp/runtimes/osx/native/
+
+      - name: Download Windows native library
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7
+        with:
+          name: native-win-x64
+          path: FlipBinding.CSharp/runtimes/win-x64/native/
+
+      - name: Download Linux native library
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7
+        with:
+          name: native-linux-x64
+          path: FlipBinding.CSharp/runtimes/linux-x64/native/
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Pack
+        run: dotnet pack FlipBinding.CSharp/FlipBinding.CSharp.csproj --no-build -o ./artifacts
+
+      - name: Upload NuGet package
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6
+        with:
+          name: FlipBinding.CSharp
+          path: ./artifacts/*.nupkg
