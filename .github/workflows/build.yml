@@ -307,7 +307,7 @@ jobs:
         uses: nuget/login@v1
         id: nuget-login
         with:
-          user: ${{ secrets.NUGET_USER }}
+          user: ${{ secrets.CT_NUGET_USER }}
 
       - name: Publish to NuGet
         run: |

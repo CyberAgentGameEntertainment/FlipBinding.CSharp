@@ -54,7 +54,7 @@
 
 | シークレット名 | 説明 |
 |--------------|------|
-| `NUGET_USER` | nuget.org のユーザー ID |
+| `CT_NUGET_USER` | nuget.org のユーザー ID |
 
 ### nuget.org での設定
 
