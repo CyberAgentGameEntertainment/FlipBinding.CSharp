@@ -313,4 +313,4 @@ jobs:
         run: |
           dotnet nuget push ./artifacts/*.nupkg \
             --api-key ${{ steps.nuget-login.outputs.NUGET_API_KEY }} \
-            --source https://int.nugettest.org/
+            --source https://api.nuget.org/v3/index.json
