@@ -37,6 +37,10 @@
 - タグ: `v1.0.0` → バージョン: `1.0.0`
 - nupkg: `FlipBinding.CSharp.1.0.0.nupkg` → バージョン: `1.0.0`
 
+> [!WARNING]  
+> バージョン番号が異なる場合、ジョブは失敗し、nuget.org への公開は行われません。またタグは immutable に設定されているため削除できません。
+> `PackageVersion` を修正し、新しいタグを作成して再度プッシュしてください。
+
 #### 公開先
 
 - **テスト環境（暫定）**: https://int.nugettest.org/
