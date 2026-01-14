@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 CyberAgent, Inc.
+// SPDX-FileCopyrightText: 2026 CyberAgent, Inc.
 // SPDX-License-Identifier: MIT
 
 // C API wrapper for FLIP library
