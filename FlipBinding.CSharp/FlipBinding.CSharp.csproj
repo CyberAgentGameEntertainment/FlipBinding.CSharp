@@ -13,6 +13,7 @@
         <Description>C# bindings for the FLIP</Description>
         <Authors>CyberAgent, Inc.</Authors>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
+      <PackageReadmeFile>README.md</PackageReadmeFile>
         <RepositoryUrl>https://github.com/CyberAgentGameEntertainment/FlipBinding.CSharp</RepositoryUrl>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
         <RootNamespace>FlipBinding.CSharp</RootNamespace>
