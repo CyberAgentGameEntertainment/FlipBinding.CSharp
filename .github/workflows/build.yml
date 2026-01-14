@@ -32,10 +32,25 @@ defaults:
 
 jobs:
   build-native-osx:
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
+    name: build-native-osx-${{ matrix.name }}
     timeout-minutes: 10
     permissions:
       contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            name: arm64
+            arch: arm64
+            artifact: native-osx-arm64
+            rid: osx-arm64
+          - os: macos-15-intel
+            name: x64
+            arch: x86_64
+            artifact: native-osx-x64
+            rid: osx-x64
 
     steps:
       - name: Checkout
@@ -43,28 +58,12 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Build native library (arm64)
+      - name: Build native library (${{ matrix.arch }})
         run: |
           cd flip-native
-          mkdir build-arm64 && cd build-arm64
-          cmake .. -DCMAKE_OSX_ARCHITECTURES=arm64
+          mkdir build && cd build
+          cmake .. -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }}
           cmake --build . --config Release
-
-      - name: Build native library (x86_64)
-        run: |
-          cd flip-native
-          mkdir build-x64 && cd build-x64
-          cmake .. -DCMAKE_OSX_ARCHITECTURES=x86_64
-          cmake --build . --config Release
-
-      - name: Create Universal Binary
-        run: |
-          cd flip-native
-          lipo -create \
-            build-arm64/libflip_native.dylib \
-            build-x64/libflip_native.dylib \
-            -output libflip_native.dylib
-          lipo -info libflip_native.dylib
 
       - name: Sign native library
         run: |
@@ -81,52 +80,22 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security list-keychain -d user -s "$KEYCHAIN_PATH"
 
-          codesign --sign "Developer ID Application" --force --timestamp flip-native/libflip_native.dylib
-          codesign --verify --verbose flip-native/libflip_native.dylib
+          codesign --sign "Developer ID Application" --force --timestamp flip-native/build/libflip_native.dylib
+          codesign --verify --verbose flip-native/build/libflip_native.dylib
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
           P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
 
-      - name: Upload native library
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6
-        with:
-          name: native-osx
-          path: flip-native/libflip_native.dylib
-
-  test-native-osx:
-    needs: [ build-native-osx ]
-    runs-on: ${{ matrix.os }}
-    name: test-native-osx-${{ matrix.name }}
-    timeout-minutes: 10
-    permissions:
-      contents: read
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ macos-latest, macos-15-intel ]
-        include:
-          - os: macos-latest
-            name: arm64
-          - os: macos-15-intel
-            name: x64
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
-        with:
-          submodules: recursive
+      - name: Copy native library to runtimes
+        run: |
+          mkdir -p FlipBinding.CSharp/runtimes/${{ matrix.rid }}/native
+          cp flip-native/build/libflip_native.dylib FlipBinding.CSharp/runtimes/${{ matrix.rid }}/native/
 
       - name: Setup .NET
         uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5
         with:
           dotnet-version: '10.0.x'
-
-      - name: Download macOS native library
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7
-        with:
-          name: native-osx
-          path: FlipBinding.CSharp/runtimes/osx/native/
 
       - name: Test
         run: dotnet test --verbosity normal --results-directory ./TestResults --logger "trx;LogFileName=test-results.trx"
@@ -139,6 +108,12 @@ jobs:
             ./TestResults/*.trx
             ./FlipBinding.CSharp.Tests/bin/Debug/net10.0/TestOutputs/*.png
         if: (!cancelled())
+
+      - name: Upload native library
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6
+        with:
+          name: ${{ matrix.artifact }}
+          path: flip-native/build/libflip_native.dylib
 
   build-native-win-x64:
     runs-on: windows-latest
@@ -235,7 +210,7 @@ jobs:
           path: flip-native/build/libflip_native.so
 
   build-nupkg:
-    needs: [ test-native-osx, build-native-win-x64, build-native-linux-x64 ]
+    needs: [ build-native-osx, build-native-win-x64, build-native-linux-x64 ]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -252,11 +227,17 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Download macOS native library
+      - name: Download macOS native library (arm64)
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7
         with:
-          name: native-osx
-          path: FlipBinding.CSharp/runtimes/osx/native/
+          name: native-osx-arm64
+          path: FlipBinding.CSharp/runtimes/osx-arm64/native/
+
+      - name: Download macOS native library (x64)
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7
+        with:
+          name: native-osx-x64
+          path: FlipBinding.CSharp/runtimes/osx-x64/native/
 
       - name: Download Windows native library
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7

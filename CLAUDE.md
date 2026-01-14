@@ -27,7 +27,7 @@ git clone --recursive https://github.com/CyberAgentGameEntertainment/FlipBinding
 
 ## Build Native Library
 
-### macOS (Universal Binary)
+### macOS (Architecture-Specific)
 
 ```bash
 cd flip-native
@@ -43,15 +43,6 @@ mkdir build-x64 && cd build-x64
 cmake .. -DCMAKE_OSX_ARCHITECTURES=x86_64
 cmake --build . --config Release
 cd ..
-
-# Create Universal Binary
-lipo -create \
-  build-arm64/libflip_native.dylib \
-  build-x64/libflip_native.dylib \
-  -output libflip_native.dylib
-
-# Verify
-lipo -info libflip_native.dylib
 ```
 
 ### Windows / Linux
@@ -65,7 +56,8 @@ cmake --build . --config Release
 
 ### Move to runtimes folder
 
-- macOS: `libflip_native.dylib` → `FlipBinding.CSharp/runtimes/osx/native/`
+- macOS (arm64): `build-arm64/libflip_native.dylib` → `FlipBinding.CSharp/runtimes/osx-arm64/native/`
+- macOS (x64): `build-x64/libflip_native.dylib` → `FlipBinding.CSharp/runtimes/osx-x64/native/`
 - Windows: `flip_native.dll` → `FlipBinding.CSharp/runtimes/win-x64/native/`
 - Linux: `libflip_native.so` → `FlipBinding.CSharp/runtimes/linux-x64/native/`
 
