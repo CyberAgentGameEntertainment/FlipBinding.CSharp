@@ -1,5 +1,8 @@
 # FlipBinding.CSharp
 
+[![Build](https://github.com/CyberAgentGameEntertainment/FlipBinding.CSharp/actions/workflows/build.yml/badge.svg)](https://github.com/CyberAgentGameEntertainment/FlipBinding.CSharp/actions/workflows/build.yml)
+[![NuGet](https://img.shields.io/nuget/v/FlipBinding.CSharp)](https://www.nuget.org/packages/FlipBinding.CSharp)
+
 A C# binding library for [FLIP](https://github.com/NVlabs/flip) v1.7. Compatible with Unity.
 
 ## Installation
@@ -32,8 +35,8 @@ dotnet add package FlipBinding.CSharp
    }
    ```
 
-2. Open the NuGetForUnity window via **NuGet > Manage NuGet Packages**, search for "FlipBinding.CSharp", and click *
-   *Install**.
+2. Open the NuGetForUnity window via **NuGet > Manage NuGet Packages**, search for "FlipBinding.CSharp",
+   and click **Install**.
 
 ## Usage
 
