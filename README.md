@@ -60,17 +60,12 @@ float pixelError = result.GetPixel(x, y);
 For HDR image comparison, specify `useHdr: true`:
 
 ```csharp
-var result = Flip.Evaluate(
-    reference,
-    test,
-    width,
-    height,
-    useHdr: true,
-    tonemapper,
-    startExposure,
-    stopExposure,
-    numExposures
-);
+var result = Flip.Evaluate(reference, test, width, height,
+        useHdr: true,
+        tonemapper,
+        startExposure,
+        stopExposure,
+        numExposures);
 ```
 
 ### Magma Color Map
@@ -78,13 +73,7 @@ var result = Flip.Evaluate(
 You can get the error map as an RGB color map for visualization:
 
 ```csharp
-var result = Flip.Evaluate(
-    reference,
-    test,
-    width,
-    height,
-    applyMagmaMap: true
-);
+var result = Flip.Evaluate(reference, test, width, height, applyMagmaMap: true);
 
 // Get RGB values
 var (r, g, b) = result.GetPixelRgb(x, y);
@@ -133,6 +122,6 @@ var result = Flip.Evaluate(reference, test, width, height, ppd: ppd);
 
 This library is licensed under the [MIT License](LICENSE.txt).
 
-This library includes binary distributions of [FLIP](https://github.com/NVlabs/flip) v1.7, which is licensed under the
-BSD 3-Clause License by NVIDIA CORPORATION & AFFILIATES. See [THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt) for
-details.
+This library includes binary distributions of [FLIP](https://github.com/NVlabs/flip) v1.7,
+which is licensed under the BSD 3-Clause License by NVIDIA CORPORATION & AFFILIATES.
+See [THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt) for details.
