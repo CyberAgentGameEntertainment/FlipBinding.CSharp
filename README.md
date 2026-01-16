@@ -24,8 +24,8 @@ dotnet add package FlipBinding.CSharp
      "configurations": [
        {
          "cpuArchitecture": "AnyCPU",
-         "editorCpuArchitecture": "",
-         "editorOperatingSystem": "",
+         "editorCpuArchitecture": "AnyCPU",
+         "editorOperatingSystem": "OSX",
          "runtime": "osx",
          "supportedPlatformTargets": [
            "StandaloneOSX"
