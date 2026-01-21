@@ -110,7 +110,7 @@ public static FlipResult Evaluate(
 )
 ```
 
-> [!IMPORTANT]
+> [!NOTE]
 > - Image data must be in linear RGB. If using sRGB, convert beforehand
 > - Array size must be `width * height * 3` (RGB interleaved format)
 
