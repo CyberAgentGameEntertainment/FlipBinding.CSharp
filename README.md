@@ -9,16 +9,15 @@ A C# binding library for [FLIP](https://github.com/NVlabs/flip) v1.7. Compatible
 
 ### NuGet
 
-```
+```bash
 dotnet add package FlipBinding.CSharp
 ```
 
 ### NuGetForUnity
 
-1. For macOS, create or edit the following file to configure native runtime settings:
-
-   `ProjectSettings/Packages/com.github-glitchenzo.nugetforunity/NativeRuntimeSettings.json`
-
+1. If you are using macOS and have a
+   `ProjectSettings/Packages/com.github-glitchenzo.nugetforunity/NativeRuntimeSettings.json` file created with
+   NuGetForUnity v4.5.0 or earlier, insert the following configuration entry into the file:
    ```json
    {
      "configurations": [
@@ -37,6 +36,19 @@ dotnet add package FlipBinding.CSharp
 
 2. Open the NuGetForUnity window via **NuGet > Manage NuGet Packages**, search for "FlipBinding.CSharp",
    and click **Install**.
+
+<!--
+### UnityNuGet
+
+```bash
+openupm add org.nuget.flipbinding.csharp
+```
+-->
+
+> [!IMPORTANT]  
+> When running on the Ubuntu 22.04 image (e.g., [GameCI](https://game.ci/) provided images), the GLIBCXX_3.4.32 (GCC
+> 13+) required by FLIP's native libraries is missing.
+> So, you will need to create a custom Docker image that includes libstdc++6 from GCC 13.
 
 ## Usage
 
@@ -64,11 +76,7 @@ For HDR image comparison, specify `useHdr: true`:
 
 ```csharp
 var result = Flip.Evaluate(reference, test, width, height,
-        useHdr: true,
-        tonemapper,
-        startExposure,
-        stopExposure,
-        numExposures);
+      useHdr: true, tonemapper, startExposure, stopExposure, numExposures);
 ```
 
 ### Magma Color Map
@@ -92,7 +100,7 @@ public static FlipResult Evaluate(
     float[] test,                // Test image (linear RGB)
     int width,                   // Image width
     int height,                  // Image height
-    bool useHdr = false,         // Use HDR-FLIP
+    bool useHdr = false,         // Use HDR-FLIP if true
     float ppd = 67.02f,          // Pixels per degree. Default value based on: 0.7m viewing distance, 3840px resolution, 0.7m monitor width.
     Tonemapper tonemapper = Tonemapper.Aces,
     float startExposure = float.PositiveInfinity,
@@ -101,6 +109,10 @@ public static FlipResult Evaluate(
     bool applyMagmaMap = false   // Apply Magma color map
 )
 ```
+
+> [!IMPORTANT]
+> - Image data must be in linear RGB. If using sRGB, convert beforehand
+> - Array size must be `width * height * 3` (RGB interleaved format)
 
 ### PPD (Pixels Per Degree) Calculation
 
@@ -115,11 +127,6 @@ float ppd = Flip.CalculatePpd(
 
 var result = Flip.Evaluate(reference, test, width, height, ppd: ppd);
 ```
-
-## Notes
-
-- Image data must be in linear RGB. If using sRGB, convert beforehand
-- Array size must be `width * height * 3` (RGB interleaved format)
 
 ## License
 
