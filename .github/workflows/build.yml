@@ -188,7 +188,7 @@ jobs:
           path: flip-native/build/Release/flip_native.dll
 
   build-native-linux-x64:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04 # Same as GameCI image
     timeout-minutes: 10
     permissions:
       contents: read
