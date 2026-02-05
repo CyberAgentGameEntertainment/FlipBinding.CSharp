@@ -45,11 +45,6 @@ openupm add org.nuget.flipbinding.csharp
 ```
 -->
 
-> [!IMPORTANT]  
-> When running on the Ubuntu 22.04 image (e.g., [GameCI](https://game.ci/) provided images), the GLIBCXX_3.4.32 (GCC
-> 13+) required by FLIP's native libraries is missing.
-> So, you will need to create a custom Docker image that includes libstdc++6 from GCC 13.
-
 ## Usage
 
 ### LDR Image Comparison
