@@ -79,6 +79,7 @@ namespace FlipBinding.CSharp
             int applyMagmaMap,
             int computeMeanError,
             float* meanError,
+            float* peakError,
             float** errorMap
         );
 
@@ -168,6 +169,7 @@ extern "C" {
         int apply_magma_map,
         int compute_mean_error,
         float* mean_error,
+        float* peak_error,
         float** error_map  // ライブラリが確保
     );
 
@@ -183,7 +185,7 @@ float* errorMapPtr = null;
 FlipNative.Evaluate(
     pRef, pTest, width, height,
     useHdr, &nativeParams,
-    0, 1, &meanError, &errorMapPtr
+    0, 1, &meanError, &peakError, &errorMapPtr
 );
 
 // ネイティブメモリからマネージド配列にコピー
@@ -321,6 +323,7 @@ FLIP_API void flip_evaluate(
     int apply_magma_map,
     int compute_mean_error,
     float* mean_error,
+    float* peak_error,
     float** error_map
 );
 
@@ -377,6 +380,7 @@ namespace FlipBinding.CSharp
             int applyMagmaMap,
             int computeMeanError,
             float* meanError,
+            float* peakError,
             float** errorMap
         );
 
@@ -431,6 +435,7 @@ namespace FlipBinding.CSharp
             };
 
             float meanError = 0;
+            float peakError = 0;
             float* errorMapPtr = null;
 
             fixed (float* pRef = reference)
@@ -439,7 +444,7 @@ namespace FlipBinding.CSharp
                 FlipNative.Evaluate(
                     pRef, pTest, width, height,
                     useHdr ? 1 : 0, &nativeParams,
-                    0, 1, &meanError, &errorMapPtr
+                    0, 1, &meanError, &peakError, &errorMapPtr
                 );
             }
 
@@ -455,7 +460,7 @@ namespace FlipBinding.CSharp
                 errorMap = Array.Empty<float>();
             }
 
-            return new FlipResult(meanError, errorMap, width, height);
+            return new FlipResult(meanError, peakError, errorMap, width, height);
         }
 
         private static IntPtr GetTonemapperPtr(Tonemapper tonemapper)
@@ -478,6 +483,7 @@ namespace FlipBinding.CSharp
 // LDR-FLIP (デフォルト)
 var result = Flip.Evaluate(reference, test, width, height);
 Console.WriteLine($"Mean error: {result.MeanError}");
+Console.WriteLine($"Peak error: {result.PeakError}");
 
 // カスタムPPD
 var result = Flip.Evaluate(reference, test, width, height, ppd: 100f);
