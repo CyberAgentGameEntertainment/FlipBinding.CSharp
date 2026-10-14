@@ -56,6 +56,10 @@ FLIP_API void flip_evaluate(
 
     FLIP::evaluate(referenceImage, testImage, use_hdr != 0, params, errorMapImage);
 
+#ifdef FLIP_ENABLE_CUDA
+    errorMapImage.synchronizeHost();
+#endif
+
     if (compute_mean_error) {
         float sum = 0.0f;
         float peak = 0.0f;
@@ -78,6 +82,9 @@ FLIP_API void flip_evaluate(
         *error_map = new float[size_t(width) * height * 3];
         FLIP::image<FLIP::color3> magmaImage(width, height);
         magmaImage.colorMap(errorMapImage, FLIP::magmaMap);
+#ifdef FLIP_ENABLE_CUDA
+        magmaImage.synchronizeHost();
+#endif
         memcpy(*error_map, magmaImage.getHostData(), size_t(width) * height * sizeof(float) * 3);
     } else {
         *error_map = new float[size_t(width) * height];
