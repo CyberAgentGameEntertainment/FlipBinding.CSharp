@@ -53,7 +53,7 @@ extern "C" {
 
 ## C#側の実装
 
-### .NET Standard 2.1 / Unity (DllImport)
+### .NET Standard 2.0 / Unity (DllImport)
 
 ```csharp
 using System;
@@ -61,21 +61,18 @@ using System.Runtime.InteropServices;
 
 namespace FlipBinding.CSharp
 {
-    public static class FlipNative
+    internal static class FlipNative
     {
         private const string DllName = "flip_native";
 
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void flip_parameters_init(ref FlipParameters parameters);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern unsafe void flip_evaluate(
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "flip_evaluate")]
+        public static extern unsafe void Evaluate(
             float* reference,
             float* test,
             int width,
             int height,
             int useHdr,
-            FlipParameters* parameters,
+            NativeFlipParameters* parameters,
             int applyMagmaMap,
             int computeMeanError,
             float* meanError,
@@ -83,8 +80,8 @@ namespace FlipBinding.CSharp
             float** errorMap
         );
 
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void flip_free(IntPtr ptr);
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "flip_free")]
+        public static extern void Free(IntPtr ptr);
     }
 }
 ```
@@ -180,11 +177,13 @@ extern "C" {
 
 ```csharp
 // C#
+float meanError = 0;
+float peakError = 0;
 float* errorMapPtr = null;
 
 FlipNative.Evaluate(
     pRef, pTest, width, height,
-    useHdr, &nativeParams,
+    useHdr ? 1 : 0, &nativeParams,
     0, 1, &meanError, &peakError, &errorMapPtr
 );
 
@@ -198,25 +197,16 @@ FlipNative.Free((IntPtr)errorMapPtr);
 
 ## プラットフォーム別のライブラリ名
 
+iOS（IL2CPP）ではネイティブライブラリが静的リンクされるため、`__Internal` を指定します。
+
 ```csharp
-public static class FlipNative
+internal static class FlipNative
 {
 #if UNITY_IOS && !UNITY_EDITOR
     private const string DllName = "__Internal";
-#elif UNITY_ANDROID
-    private const string DllName = "flip_native";
-#elif UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
-    private const string DllName = "flip_native";
-#elif UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
-    private const string DllName = "flip_native";
-#elif UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
-    private const string DllName = "flip_native";
 #else
     private const string DllName = "flip_native";
 #endif
-
-    [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void flip_evaluate(...);
 }
 ```
 
@@ -247,250 +237,17 @@ private static void OnProgress(float progress)
 
 ### ネイティブライブラリの配置
 
-```
-Assets/
-└── Plugins/
-    ├── Windows/
-    │   ├── x86_64/
-    │   │   └── flip_native.dll
-    │   └── x86/
-    │       └── flip_native.dll
-    ├── macOS/
-    │   └── flip_native.bundle
-    ├── Linux/
-    │   └── libflip_native.so
-    ├── Android/
-    │   └── libs/
-    │       ├── arm64-v8a/
-    │       │   └── libflip_native.so
-    │       └── armeabi-v7a/
-    │           └── libflip_native.so
-    └── iOS/
-        └── libflip_native.a
-```
+NuGet パッケージの `runtimes/` に同梱したネイティブライブラリを使います。
+導入手順は [README.md の Installation](../README.md#installation) を参照してください。
 
-## FLIP バインディングの実装例
+## FLIP バインディングの実装
 
-### C++ ラッパー (flip_capi.h)
+実装は以下のファイルを参照してください。
 
-```cpp
-#ifndef FLIP_CAPI_H
-#define FLIP_CAPI_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifdef _WIN32
-    #ifdef FLIP_EXPORTS
-        #define FLIP_API __declspec(dllexport)
-    #else
-        #define FLIP_API __declspec(dllimport)
-    #endif
-#else
-    #define FLIP_API __attribute__((visibility("default")))
-#endif
-
-/// Parameters for FLIP evaluation.
-/// C-compatible version of FLIP::Parameters.
-typedef struct {
-    float ppd;
-    float start_exposure;
-    float stop_exposure;
-    int num_exposures;
-    const char* tonemapper;  // "aces", "reinhard", "hable"
-} FlipParameters;
-
-/// Initializes FlipParameters with default values.
-FLIP_API void flip_parameters_init(FlipParameters* params);
-
-/// Calculates PPD (pixels per degree) from viewing conditions.
-FLIP_API float flip_calculate_ppd(
-    float viewing_distance,
-    float resolution_x,
-    float monitor_width
-);
-
-/// Evaluates FLIP between a reference image and a test image.
-/// Memory for error_map is allocated by this function and must be freed with flip_free().
-FLIP_API void flip_evaluate(
-    const float* reference,
-    const float* test,
-    int width,
-    int height,
-    int use_hdr,
-    const FlipParameters* parameters,
-    int apply_magma_map,
-    int compute_mean_error,
-    float* mean_error,
-    float* peak_error,
-    float** error_map
-);
-
-/// Frees memory allocated by the library.
-FLIP_API void flip_free(void* ptr);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif // FLIP_CAPI_H
-```
-
-### C# バインディング (FlipNative.cs)
-
-```csharp
-using System;
-using System.Runtime.InteropServices;
-
-namespace FlipBinding.CSharp
-{
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct NativeFlipParameters
-    {
-        public float Ppd;
-        public float StartExposure;
-        public float StopExposure;
-        public int NumExposures;
-        public IntPtr Tonemapper;
-    }
-
-    internal static class FlipNative
-    {
-        private const string DllName = "flip_native";
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "flip_parameters_init")]
-        public static extern void ParametersInit(ref NativeFlipParameters parameters);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "flip_calculate_ppd")]
-        public static extern float CalculatePpd(
-            float viewingDistance,
-            float resolutionX,
-            float monitorWidth
-        );
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "flip_evaluate")]
-        public static extern unsafe void Evaluate(
-            float* reference,
-            float* test,
-            int width,
-            int height,
-            int useHdr,
-            NativeFlipParameters* parameters,
-            int applyMagmaMap,
-            int computeMeanError,
-            float* meanError,
-            float* peakError,
-            float** errorMap
-        );
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "flip_free")]
-        public static extern void Free(IntPtr ptr);
-    }
-}
-```
-
-### 高レベル API (Flip.cs)
-
-```csharp
-using System;
-using System.Runtime.InteropServices;
-
-namespace FlipBinding.CSharp
-{
-    public static class Flip
-    {
-        public const float DefaultPpd = 67.0f;
-
-        private static readonly IntPtr AcesPtr;
-        private static readonly IntPtr ReinhardPtr;
-        private static readonly IntPtr HablePtr;
-
-        static Flip()
-        {
-            AcesPtr = Marshal.StringToHGlobalAnsi("aces");
-            ReinhardPtr = Marshal.StringToHGlobalAnsi("reinhard");
-            HablePtr = Marshal.StringToHGlobalAnsi("hable");
-        }
-
-        public static unsafe FlipResult Evaluate(
-            float[] reference,
-            float[] test,
-            int width,
-            int height,
-            bool useHdr = false,
-            float ppd = Flip.DefaultPpd,
-            Tonemapper tonemapper = Tonemapper.Aces,
-            float startExposure = float.PositiveInfinity,
-            float stopExposure = float.PositiveInfinity,
-            int numExposures = -1)
-        {
-            var nativeParams = new NativeFlipParameters
-            {
-                Ppd = ppd,
-                StartExposure = startExposure,
-                StopExposure = stopExposure,
-                NumExposures = numExposures,
-                Tonemapper = GetTonemapperPtr(tonemapper)
-            };
-
-            float meanError = 0;
-            float peakError = 0;
-            float* errorMapPtr = null;
-
-            fixed (float* pRef = reference)
-            fixed (float* pTest = test)
-            {
-                FlipNative.Evaluate(
-                    pRef, pTest, width, height,
-                    useHdr ? 1 : 0, &nativeParams,
-                    0, 1, &meanError, &peakError, &errorMapPtr
-                );
-            }
-
-            float[] errorMap;
-            if (errorMapPtr != null)
-            {
-                errorMap = new float[width * height];
-                Marshal.Copy((IntPtr)errorMapPtr, errorMap, 0, width * height);
-                FlipNative.Free((IntPtr)errorMapPtr);
-            }
-            else
-            {
-                errorMap = Array.Empty<float>();
-            }
-
-            return new FlipResult(meanError, peakError, errorMap, width, height);
-        }
-
-        private static IntPtr GetTonemapperPtr(Tonemapper tonemapper)
-        {
-            return tonemapper switch
-            {
-                Tonemapper.Aces => AcesPtr,
-                Tonemapper.Reinhard => ReinhardPtr,
-                Tonemapper.Hable => HablePtr,
-                _ => AcesPtr
-            };
-        }
-    }
-}
-```
-
-### 使用例
-
-```csharp
-// LDR-FLIP (デフォルト)
-var result = Flip.Evaluate(reference, test, width, height);
-Console.WriteLine($"Mean error: {result.MeanError}");
-Console.WriteLine($"Peak error: {result.PeakError}");
-
-// カスタムPPD
-var result = Flip.Evaluate(reference, test, width, height, ppd: 100f);
-
-// HDR-FLIP
-var result = Flip.Evaluate(reference, test, width, height, useHdr: true);
-```
+- C ラッパー: [flip-native/flip_capi.h](../flip-native/flip_capi.h)、[flip-native/flip_capi.cpp](../flip-native/flip_capi.cpp)
+- P/Invoke 宣言: [FlipBinding.CSharp/FlipNative.cs](../FlipBinding.CSharp/FlipNative.cs)
+- 高レベル API: [FlipBinding.CSharp/Flip.cs](../FlipBinding.CSharp/Flip.cs)
+- 使用例: [README.md の Usage](../README.md#usage)
 
 ## 参考リンク
 
