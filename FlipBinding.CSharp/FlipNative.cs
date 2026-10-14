@@ -55,8 +55,9 @@ namespace FlipBinding.CSharp
         /// <param name="useHdr">0 for LDR-FLIP, non-zero for HDR-FLIP.</param>
         /// <param name="parameters">Pointer to FlipParameters. Can be IntPtr.Zero for defaults.</param>
         /// <param name="applyMagmaMap">If non-zero, output is RGB with magma colormap.</param>
-        /// <param name="computeMeanError">If non-zero, mean FLIP error is computed.</param>
+        /// <param name="computeMeanError">If non-zero, mean and peak FLIP errors are computed.</param>
         /// <param name="meanError">Output mean FLIP error value.</param>
+        /// <param name="peakError">Output peak (maximum) FLIP error value.</param>
         /// <param name="errorMap">Output pointer to error map (allocated by native).</param>
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "flip_evaluate")]
         public static extern unsafe void Evaluate(
@@ -69,6 +70,7 @@ namespace FlipBinding.CSharp
             int applyMagmaMap,
             int computeMeanError,
             float* meanError,
+            float* peakError,
             float** errorMap
         );
 

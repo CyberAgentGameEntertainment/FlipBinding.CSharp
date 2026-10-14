@@ -5,7 +5,8 @@
 // This header provides a C-compatible interface for the FLIP C++ library,
 // enabling P/Invoke calls from C# and other languages.
 //
-// This API is designed to be faithful to FLIP::evaluate() pointer API.
+// This API is designed to be faithful to FLIP::evaluate() pointer API,
+// with the addition of peak error output.
 
 #ifndef FLIP_CAPI_H
 #define FLIP_CAPI_H
@@ -54,7 +55,7 @@ FLIP_API float flip_calculate_ppd(
 
 /// Evaluates FLIP between a reference image and a test image.
 ///
-/// This function is faithful to FLIP::evaluate() pointer API.
+/// This function is faithful to FLIP::evaluate() pointer API, with the addition of peak error output.
 /// Memory for error_map is allocated by this function and must be freed with flip_free().
 ///
 /// @param reference Reference image data in interleaved RGB format [r,g,b,r,g,b,...].
@@ -66,8 +67,9 @@ FLIP_API float flip_calculate_ppd(
 /// @param parameters Pointer to FlipParameters. If NULL, default values are used.
 /// @param apply_magma_map If non-zero, output is RGB with magma colormap applied (3 * width * height floats).
 ///                        If zero, output is grayscale error values (width * height floats).
-/// @param compute_mean_error If non-zero, mean FLIP error is computed and stored in mean_error.
+/// @param compute_mean_error If non-zero, mean and peak FLIP errors are computed and stored in mean_error and peak_error.
 /// @param mean_error Output pointer for mean FLIP error value. Can be NULL if compute_mean_error is 0.
+/// @param peak_error Output pointer for peak (maximum) FLIP error value. Can be NULL if compute_mean_error is 0.
 /// @param error_map Output pointer to error map. Memory is allocated by this function.
 ///                  Caller must free with flip_free(). Output size depends on apply_magma_map.
 FLIP_API void flip_evaluate(
@@ -80,6 +82,7 @@ FLIP_API void flip_evaluate(
     int apply_magma_map,
     int compute_mean_error,
     float* mean_error,
+    float* peak_error,
     float** error_map
 );
 

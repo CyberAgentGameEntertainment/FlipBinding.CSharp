@@ -7,6 +7,8 @@
 #include "../flip/src/cpp/FLIP.h"
 #include <cmath>
 #include <limits>
+#include <algorithm>
+#include <cstring>
 
 extern "C" {
 
@@ -28,6 +30,7 @@ FLIP_API void flip_evaluate(
     int apply_magma_map,
     int compute_mean_error,
     float* mean_error,
+    float* peak_error,
     float** error_map)
 {
     // Set up FLIP parameters
@@ -43,25 +46,42 @@ FLIP_API void flip_evaluate(
         }
     }
 
-    // Call FLIP's pointer-based evaluate function
-    float meanFLIPError = 0.0f;
+    // Mirrors FLIP's pointer-based evaluate() instead of calling it,
+    // because peak error must be taken from the grayscale map before the magma colormap is applied.
+    FLIP::image<FLIP::color3> referenceImage;
+    FLIP::image<FLIP::color3> testImage;
+    FLIP::image<float> errorMapImage(width, height, 0.0f);
+    referenceImage.setPixels(reference, width, height);
+    testImage.setPixels(test, width, height);
 
-    FLIP::evaluate(
-        reference,
-        test,
-        width,
-        height,
-        use_hdr != 0,
-        params,
-        apply_magma_map != 0,
-        compute_mean_error != 0,
-        meanFLIPError,
-        error_map
-    );
+    FLIP::evaluate(referenceImage, testImage, use_hdr != 0, params, errorMapImage);
 
-    // Store mean error if requested
-    if (compute_mean_error && mean_error) {
-        *mean_error = meanFLIPError;
+    if (compute_mean_error) {
+        float sum = 0.0f;
+        float peak = 0.0f;
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                const float value = errorMapImage.get(x, y);
+                sum += value;
+                peak = std::max(peak, value);
+            }
+        }
+        if (mean_error) {
+            *mean_error = sum / (width * height);
+        }
+        if (peak_error) {
+            *peak_error = peak;
+        }
+    }
+
+    if (apply_magma_map) {
+        *error_map = new float[size_t(width) * height * 3];
+        FLIP::image<FLIP::color3> magmaImage(width, height);
+        magmaImage.colorMap(errorMapImage, FLIP::magmaMap);
+        memcpy(*error_map, magmaImage.getHostData(), size_t(width) * height * sizeof(float) * 3);
+    } else {
+        *error_map = new float[size_t(width) * height];
+        memcpy(*error_map, errorMapImage.getHostData(), size_t(width) * height * sizeof(float));
     }
 }
 
