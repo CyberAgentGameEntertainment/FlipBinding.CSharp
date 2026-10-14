@@ -37,13 +37,11 @@ dotnet add package FlipBinding.CSharp
 2. Open the NuGetForUnity window via **NuGet > Manage NuGet Packages**, search for "FlipBinding.CSharp",
    and click **Install**.
 
-<!--
-### UnityNuGet
+### UnityNuGet (OpenUPM)
 
 ```bash
 openupm add org.nuget.flipbinding.csharp
 ```
--->
 
 ## Usage
 
