@@ -39,7 +39,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+        uses: actions/checkout@v6.0.1
         with:
           submodules: recursive
 
@@ -89,7 +89,7 @@ jobs:
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
 
       - name: Upload native library
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6
+        uses: actions/upload-artifact@v6.0.0
         with:
           name: native-osx
           path: flip-native/libflip_native.dylib
@@ -113,17 +113,17 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+        uses: actions/checkout@v6.0.1
         with:
           submodules: recursive
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5
+        uses: actions/setup-dotnet@v5.0.1
         with:
           dotnet-version: '10.0.x'
 
       - name: Download macOS native library
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7
+        uses: actions/download-artifact@v7.0.0
         with:
           name: native-osx
           path: FlipBinding.CSharp/runtimes/osx/native/
@@ -132,7 +132,7 @@ jobs:
         run: dotnet test --verbosity normal --results-directory ./TestResults --logger "trx;LogFileName=test-results.trx"
 
       - name: Upload test results
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6
+        uses: actions/upload-artifact@v6.0.0
         with:
           name: native-osx-${{ matrix.name }}-test-results
           path: |
@@ -148,7 +148,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+        uses: actions/checkout@v6.0.1
         with:
           submodules: recursive
 
@@ -165,7 +165,7 @@ jobs:
           cp flip-native/build/Release/flip_native.dll FlipBinding.CSharp/runtimes/win-x64/native/
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5
+        uses: actions/setup-dotnet@v5.0.1
         with:
           dotnet-version: '10.0.x'
 
@@ -173,7 +173,7 @@ jobs:
         run: dotnet test --verbosity normal --results-directory ./TestResults --logger "trx;LogFileName=test-results.trx"
 
       - name: Upload test results
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6
+        uses: actions/upload-artifact@v6.0.0
         with:
           name: native-win-x64-test-results
           path: |
@@ -182,7 +182,7 @@ jobs:
         if: (!cancelled())
 
       - name: Upload native library
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6
+        uses: actions/upload-artifact@v6.0.0
         with:
           name: native-win-x64
           path: flip-native/build/Release/flip_native.dll
@@ -195,7 +195,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+        uses: actions/checkout@v6.0.1
         with:
           submodules: recursive
 
@@ -212,7 +212,7 @@ jobs:
           cp flip-native/build/libflip_native.so FlipBinding.CSharp/runtimes/linux-x64/native/
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5
+        uses: actions/setup-dotnet@v5.0.1
         with:
           dotnet-version: '10.0.x'
 
@@ -220,7 +220,7 @@ jobs:
         run: dotnet test --verbosity normal --results-directory ./TestResults --logger "trx;LogFileName=test-results.trx"
 
       - name: Upload test results
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6
+        uses: actions/upload-artifact@v6.0.0
         with:
           name: native-linux-x64-test-results
           path: |
@@ -229,7 +229,7 @@ jobs:
         if: (!cancelled())
 
       - name: Upload native library
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6
+        uses: actions/upload-artifact@v6.0.0
         with:
           name: native-linux-x64
           path: flip-native/build/libflip_native.so
@@ -243,29 +243,29 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+        uses: actions/checkout@v6.0.1
         with:
           submodules: false
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5
+        uses: actions/setup-dotnet@v5.0.1
         with:
           dotnet-version: '10.0.x'
 
       - name: Download macOS native library
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7
+        uses: actions/download-artifact@v7.0.0
         with:
           name: native-osx
           path: FlipBinding.CSharp/runtimes/osx/native/
 
       - name: Download Windows native library
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7
+        uses: actions/download-artifact@v7.0.0
         with:
           name: native-win-x64
           path: FlipBinding.CSharp/runtimes/win-x64/native/
 
       - name: Download Linux native library
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7
+        uses: actions/download-artifact@v7.0.0
         with:
           name: native-linux-x64
           path: FlipBinding.CSharp/runtimes/linux-x64/native/
@@ -280,7 +280,7 @@ jobs:
         run: dotnet pack FlipBinding.CSharp/FlipBinding.CSharp.csproj --no-build -o ./artifacts
 
       - name: Upload NuGet package
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6
+        uses: actions/upload-artifact@v6.0.0
         with:
           name: FlipBinding.CSharp
           path: ./artifacts/*.nupkg
@@ -295,7 +295,7 @@ jobs:
 
     steps:
       - name: Download NuGet package
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7
+        uses: actions/download-artifact@v7.0.0
         with:
           name: FlipBinding.CSharp
           path: ./artifacts/
@@ -321,12 +321,12 @@ jobs:
           echo "Version validated successfully"
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5
+        uses: actions/setup-dotnet@v5.0.1
         with:
           dotnet-version: '10.0.x'
 
       - name: NuGet login (Trusted Publishing)
-        uses: nuget/login@d22cc5f58ff5b88bf9bd452535b4335137e24544  # v1
+        uses: nuget/login@v1.1.0
         with:
           user: ${{ secrets.CT_NUGET_USER }}
         id: nuget-login
