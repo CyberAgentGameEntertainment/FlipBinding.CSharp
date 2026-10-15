@@ -61,7 +61,8 @@ FLIP_API void flip_evaluate(
 #endif
 
     if (compute_mean_error) {
-        float sum = 0.0f;
+        // Not float: the accumulated rounding error skews the mean on large images.
+        double sum = 0.0;
         float peak = 0.0f;
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
@@ -71,7 +72,7 @@ FLIP_API void flip_evaluate(
             }
         }
         if (mean_error) {
-            *mean_error = sum / (width * height);
+            *mean_error = static_cast<float>(sum / (double(width) * height));
         }
         if (peak_error) {
             *peak_error = peak;
