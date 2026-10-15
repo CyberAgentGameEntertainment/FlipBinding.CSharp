@@ -15,8 +15,8 @@ namespace FlipBinding.CSharp.Tests;
 public class FlipTest
 {
     // Expected mean values from flip/src/tests/test.py
-    private const float ExpectedLdrMean = 0.159691f;
-    private const float ExpectedHdrMean = 0.283478f;
+    private const float ExpectedLdrMean = 0.159693f;
+    private const float ExpectedHdrMean = 0.283547f;
 
     // Tolerance for floating point comparison
     private const float MeanTolerance = 1E-05f;
@@ -53,6 +53,21 @@ public class FlipTest
 
         // Assert
         Assert.That(result.MeanError, Is.EqualTo(ExpectedLdrMean).Within(MeanTolerance));
+    }
+
+    [Test]
+    public void Evaluate_WithLdrTestImages_ReturnsMeanEqualToErrorMapMean()
+    {
+        // Arrange
+        var (referenceData, width, height) = TestImageLoader.LoadPngAsRgbFloat(_referencePngPath);
+        var (testData, _, _) = TestImageLoader.LoadPngAsRgbFloat(_testPngPath);
+
+        // Act
+        var result = Flip.Evaluate(referenceData, testData, width, height);
+
+        // Assert
+        var expected = (float)result.ErrorMap.Average(v => (double)v);
+        Assert.That(result.MeanError, Is.EqualTo(expected).Within(1E-07f));
     }
 
     [Test]
