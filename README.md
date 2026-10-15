@@ -70,6 +70,9 @@ var result = Flip.Evaluate(reference, test, width, height);
 // Mean error value (0-1, higher means greater difference)
 Console.WriteLine($"Mean FLIP error: {result.MeanError}");
 
+// Peak (maximum) error value (0-1)
+Console.WriteLine($"Peak FLIP error: {result.PeakError}");
+
 // Get per-pixel error value
 float pixelError = result.GetPixel(x, y);
 ```

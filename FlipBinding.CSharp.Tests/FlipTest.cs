@@ -70,6 +70,52 @@ public class FlipTest
     }
 
     [Test]
+    public void Evaluate_WithLdrTestImages_ReturnsPeakEqualToErrorMapMax()
+    {
+        // Arrange
+        var (referenceData, width, height) = TestImageLoader.LoadPngAsRgbFloat(_referencePngPath);
+        var (testData, _, _) = TestImageLoader.LoadPngAsRgbFloat(_testPngPath);
+
+        // Act
+        var result = Flip.Evaluate(referenceData, testData, width, height);
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.PeakError, Is.EqualTo(result.ErrorMap.Max()));
+            Assert.That(result.PeakError, Is.GreaterThan(result.MeanError));
+        });
+    }
+
+    [Test]
+    public void Evaluate_WithIdenticalImages_ReturnsZeroPeak()
+    {
+        // Arrange
+        var (referenceData, width, height) = TestImageLoader.LoadPngAsRgbFloat(_referencePngPath);
+
+        // Act
+        var result = Flip.Evaluate(referenceData, referenceData, width, height);
+
+        // Assert
+        Assert.That(result.PeakError, Is.EqualTo(0f));
+    }
+
+    [Test]
+    public void Evaluate_WithMagmaMap_ReturnsSamePeakAsGrayscale()
+    {
+        // Arrange
+        var (referenceData, width, height) = TestImageLoader.LoadPngAsRgbFloat(_referencePngPath);
+        var (testData, _, _) = TestImageLoader.LoadPngAsRgbFloat(_testPngPath);
+        var grayscale = Flip.Evaluate(referenceData, testData, width, height);
+
+        // Act
+        var magma = Flip.Evaluate(referenceData, testData, width, height, applyMagmaMap: true);
+
+        // Assert
+        Assert.That(magma.PeakError, Is.EqualTo(grayscale.PeakError));
+    }
+
+    [Test]
     [Description("Tests that error map dimensions match input image dimensions")]
     public void Evaluate_WithTestImages_ReturnsCorrectDimensions()
     {

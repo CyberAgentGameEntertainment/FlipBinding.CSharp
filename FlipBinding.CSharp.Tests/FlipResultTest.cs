@@ -9,7 +9,7 @@ public class FlipResultTest
     public void GetPixel_ReturnsCorrectValue()
     {
         float[] errorMap = [0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f];
-        var result = new FlipResult(0.35f, errorMap, 3, 2, false);
+        var result = new FlipResult(0.35f, 0.6f, errorMap, 3, 2, false);
 
         Assert.Multiple(() =>
         {
@@ -27,7 +27,7 @@ public class FlipResultTest
     public void GetPixel_ThrowsOnOutOfBounds(int x, int y)
     {
         float[] errorMap = [0.1f, 0.2f, 0.3f, 0.4f];
-        var result = new FlipResult(0.25f, errorMap, 2, 2, false);
+        var result = new FlipResult(0.25f, 0.4f, errorMap, 2, 2, false);
 
         Assert.Throws<ArgumentOutOfRangeException>(() => result.GetPixel(x, y));
     }
@@ -36,7 +36,7 @@ public class FlipResultTest
     public void GetPixel_ThrowsWhenMagmaMap()
     {
         float[] errorMap = [0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f, 0.0f, 0.5f];
-        var result = new FlipResult(0.5f, errorMap, 2, 2, true);
+        var result = new FlipResult(0.5f, 1.0f, errorMap, 2, 2, true);
 
         Assert.Throws<InvalidOperationException>(() => result.GetPixel(0, 0));
     }
@@ -44,7 +44,7 @@ public class FlipResultTest
     [Test]
     public void GetPixel_ThrowsWhenEmpty()
     {
-        var result = new FlipResult(0f, [], 2, 2, true);
+        var result = new FlipResult(0f, 0f, [], 2, 2, true);
 
         Assert.Throws<InvalidOperationException>(() => result.GetPixel(0, 0));
     }
@@ -60,7 +60,7 @@ public class FlipResultTest
             0.7f, 0.8f, 0.9f, // (0, 1)
             1.0f, 0.0f, 0.5f  // (1, 1)
         ];
-        var result = new FlipResult(0.5f, errorMap, 2, 2, true);
+        var result = new FlipResult(0.5f, 1.0f, errorMap, 2, 2, true);
 
         Assert.Multiple(() =>
         {
@@ -78,7 +78,7 @@ public class FlipResultTest
     public void GetPixelRgb_ThrowsOnOutOfBounds(int x, int y)
     {
         float[] errorMap = [0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f, 0.0f, 0.5f];
-        var result = new FlipResult(0.5f, errorMap, 2, 2, true);
+        var result = new FlipResult(0.5f, 1.0f, errorMap, 2, 2, true);
 
         Assert.Throws<ArgumentOutOfRangeException>(() => result.GetPixelRgb(x, y));
     }
@@ -87,7 +87,7 @@ public class FlipResultTest
     public void GetPixelRgb_ThrowsWhenNotMagmaMap()
     {
         float[] errorMap = [0.1f, 0.2f, 0.3f, 0.4f];
-        var result = new FlipResult(0.25f, errorMap, 2, 2, false);
+        var result = new FlipResult(0.25f, 0.4f, errorMap, 2, 2, false);
 
         Assert.Throws<InvalidOperationException>(() => result.GetPixelRgb(0, 0));
     }
@@ -95,15 +95,24 @@ public class FlipResultTest
     [Test]
     public void GetPixelRgb_ThrowsWhenEmpty()
     {
-        var result = new FlipResult(0f, [], 2, 2, true);
+        var result = new FlipResult(0f, 0f, [], 2, 2, true);
 
         Assert.Throws<InvalidOperationException>(() => result.GetPixelRgb(0, 0));
     }
 
     [Test]
+    public void PeakError_ReturnsValuePassedToConstructor()
+    {
+        float[] errorMap = [0.1f, 0.2f, 0.3f, 0.4f];
+        var result = new FlipResult(0.25f, 0.4f, errorMap, 2, 2, false);
+
+        Assert.That(result.PeakError, Is.EqualTo(0.4f));
+    }
+
+    [Test]
     public void HasErrorMap_Empty_ReturnsFalse()
     {
-        var result = new FlipResult(0f, [], 2, 2, true);
+        var result = new FlipResult(0f, 0f, [], 2, 2, true);
         Assert.That(result.HasErrorMap, Is.False);
     }
 
@@ -111,7 +120,7 @@ public class FlipResultTest
     public void HasErrorMap_NotEmpty_ReturnsTrue()
     {
         float[] errorMap = [0.1f, 0.2f, 0.3f, 0.4f];
-        var result = new FlipResult(0.25f, errorMap, 2, 2, false);
+        var result = new FlipResult(0.25f, 0.4f, errorMap, 2, 2, false);
         Assert.That(result.HasErrorMap, Is.True);
     }
 }

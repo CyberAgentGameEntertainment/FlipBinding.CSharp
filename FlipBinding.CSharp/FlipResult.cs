@@ -17,6 +17,12 @@ namespace FlipBinding.CSharp
         public float MeanError { get; }
 
         /// <summary>
+        /// Peak (maximum) FLIP error value in the range [0, 1].
+        /// Lower values indicate more similar images.
+        /// </summary>
+        public float PeakError { get; }
+
+        /// <summary>
         /// Per-pixel error map with values in the range [0, 1].
         /// The array has width * height elements in row-major order.
         /// </summary>
@@ -48,13 +54,15 @@ namespace FlipBinding.CSharp
         /// Creates a new FLIP result.
         /// </summary>
         /// <param name="meanError">Mean error value.</param>
+        /// <param name="peakError">Peak error value.</param>
         /// <param name="errorMap">Per-pixel error map.</param>
         /// <param name="width">Image width.</param>
         /// <param name="height">Image height.</param>
         /// <param name="isMagmaMap">Whether the error map uses Magma colormap.</param>
-        public FlipResult(float meanError, float[] errorMap, int width, int height, bool isMagmaMap)
+        public FlipResult(float meanError, float peakError, float[] errorMap, int width, int height, bool isMagmaMap)
         {
             MeanError = meanError;
+            PeakError = peakError;
             ErrorMap = errorMap;
             Width = width;
             Height = height;

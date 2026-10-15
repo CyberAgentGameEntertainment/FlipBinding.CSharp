@@ -46,6 +46,7 @@ var result = Flip.Evaluate(
 );
 
 Console.WriteLine($"Mean FLIP error: {result.MeanError:F6}");
+Console.WriteLine($"Peak FLIP error: {result.PeakError:F6}");
 
 // Magma カラーマップ付きエラーマップを保存
 SaveRgbFloatAsPng(result.ErrorMap, result.Width, result.Height, "flip_error.png");
@@ -66,6 +67,7 @@ int height = 1080;
 var result = Flip.Evaluate(referenceData, testData, width, height);
 
 Console.WriteLine($"Mean FLIP error: {result.MeanError:F6}");
+Console.WriteLine($"Peak FLIP error: {result.PeakError:F6}");
 
 // グレースケールエラーマップへのアクセス
 float errorAtPixel = result.GetPixel(x, y);
@@ -220,6 +222,7 @@ var result = Flip.Evaluate(referenceData, testData, width, height, applyMagmaMap
 
 // 基本情報
 Console.WriteLine($"Mean Error: {result.MeanError}");
+Console.WriteLine($"Peak Error: {result.PeakError}");
 Console.WriteLine($"Width: {result.Width}");
 Console.WriteLine($"Height: {result.Height}");
 Console.WriteLine($"Is Magma Map: {result.IsMagmaMap}");

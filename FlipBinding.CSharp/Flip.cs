@@ -41,7 +41,7 @@ namespace FlipBinding.CSharp
         /// <param name="stopExposure">Stop exposure for HDR-FLIP. Use float.PositiveInfinity for auto-calculation.</param>
         /// <param name="numExposures">Number of exposures for HDR-FLIP. Use -1 for auto-calculation.</param>
         /// <param name="applyMagmaMap">If true, output error map uses Magma colormap (RGB). If false, output is grayscale.</param>
-        /// <returns>FLIP evaluation result containing mean error and per-pixel error map.</returns>
+        /// <returns>FLIP evaluation result containing mean error, peak error, and per-pixel error map.</returns>
         /// <exception cref="ArgumentNullException">Thrown when reference or test is null.</exception>
         /// <exception cref="ArgumentException">Thrown when image dimensions are invalid or arrays have incorrect size.</exception>
         public static unsafe FlipResult Evaluate(
@@ -70,6 +70,7 @@ namespace FlipBinding.CSharp
             };
 
             float meanError = 0;
+            float peakError = 0;
             float* errorMapPtr = null;
 
             fixed (float* pRef = reference)
@@ -85,6 +86,7 @@ namespace FlipBinding.CSharp
                     applyMagmaMap ? 1 : 0,
                     1, // computeMeanError = true
                     &meanError,
+                    &peakError,
                     &errorMapPtr
                 );
             }
@@ -104,7 +106,7 @@ namespace FlipBinding.CSharp
                 errorMap = Array.Empty<float>();
             }
 
-            return new FlipResult(meanError, errorMap, width, height, applyMagmaMap);
+            return new FlipResult(meanError, peakError, errorMap, width, height, applyMagmaMap);
         }
 
         /// <summary>
