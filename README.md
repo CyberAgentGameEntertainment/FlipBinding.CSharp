@@ -5,6 +5,17 @@
 
 A C# binding library for [FLIP](https://github.com/NVlabs/flip) v1.7. Compatible with Unity.
 
+## Supported Platforms
+
+| Runtime   | Architecture  | Notes                                                                                                                              |
+|-----------|---------------|------------------------------------------------------------------------------------------------------------------------------------|
+| osx       | arm64, x86_64 | Universal binary. Single-threaded, so it is slower but does not depend on OpenMP.                                                  |
+| win-x64   | x86_64        | Single-threaded, so it is slower but does not depend on CUDA or OpenMP.                                                            |
+| linux-x64 | x86_64        | Requires the OpenMP runtime (`libgomp.so.1`). Works on [GameCI Docker images](https://hub.docker.com/u/unityci) and Ubuntu 22.04+. |
+
+> [!NOTE]\
+> The bundled native libraries are CPU-only; CUDA is not supported on any platform.
+
 ## Installation
 
 ### NuGet
@@ -37,13 +48,11 @@ dotnet add package FlipBinding.CSharp
 2. Open the NuGetForUnity window via **NuGet > Manage NuGet Packages**, search for "FlipBinding.CSharp",
    and click **Install**.
 
-<!--
-### UnityNuGet
+### UnityNuGet (OpenUPM)
 
 ```bash
 openupm add org.nuget.flipbinding.csharp
 ```
--->
 
 ## Usage
 
