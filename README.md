@@ -2,6 +2,7 @@
 
 [![Build](https://github.com/CyberAgentGameEntertainment/FlipBinding.CSharp/actions/workflows/build.yml/badge.svg)](https://github.com/CyberAgentGameEntertainment/FlipBinding.CSharp/actions/workflows/build.yml)
 [![NuGet](https://img.shields.io/nuget/v/FlipBinding.CSharp)](https://www.nuget.org/packages/FlipBinding.CSharp)
+[![openupm](https://img.shields.io/npm/v/org.nuget.flipbinding.csharp?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/org.nuget.flipbinding.csharp/)
 
 A C# binding library for [FLIP](https://github.com/NVlabs/flip) v1.7. Compatible with Unity.
 
